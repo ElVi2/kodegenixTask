@@ -1,5 +1,3 @@
-#[derive(Serialize, Deserialize, Debug)]
-
 #[allow(dead_code)]
 pub enum Event {
     StartEvent,
@@ -37,7 +35,8 @@ pub enum FlowObject {
 pub struct Semantic;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Process {
-    id: u64,
-    semantic: Semantic
+pub struct Definitions {
+    pub id: String,
+    #[serde(rename="process")]
+    pub semantic_process: Vec<String>
 }

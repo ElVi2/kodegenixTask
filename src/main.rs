@@ -4,8 +4,8 @@ extern crate serde_derive;
 //use std::io;
 use std::io::Read;
 use std::fs::File;
-use serde::{Serialize, Deserialize};
-use serde_xml;
+use serde_xml_rs;
+
 //use std::mem;
 //use std::io::BufReader;
 mod process_bpmn;
@@ -22,6 +22,7 @@ fn main() {
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
     bpmn_file.read_to_string(&mut contents);
-    let deserialized: process_bpmn::Process = serde_xml::from_str(&contents).unwrap();
-    println!("{}", contents);
+    let deserialized: process_bpmn::Definitions = serde_xml_rs::from_str(&contents).unwrap();
+    println!("{}", deserialized.id);
+    //println!("{}", contents);
 }
