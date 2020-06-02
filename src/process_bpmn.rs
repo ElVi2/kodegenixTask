@@ -23,7 +23,6 @@ pub enum Gateway {
     ParallelEventBasedGateway,
     ComplexGateway
 }
-
 #[allow(dead_code)]
 pub enum FlowObject {
     Event(Event),
