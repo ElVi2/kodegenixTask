@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 serde = "1.0.111"
 serde_derive = "1.0.111"
+serde_xml = "0.9.1"
