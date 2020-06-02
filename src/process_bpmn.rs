@@ -1,3 +1,4 @@
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Process {
-    ProcessId(usize),
+    ProcessId(i128),
 }
