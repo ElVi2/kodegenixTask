@@ -1,4 +1,4 @@
-#[macro_use]
+//#[macro_use]
 
 use quick_xml;
 use quick_xml::events::BytesStart;

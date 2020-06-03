@@ -35,12 +35,13 @@ pub enum FlowObject {
     Gateway(Gateway)
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum ConnectionType {
     Ingoing,
     Outgoing
 }
-
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Connection {
     pub start: String,
@@ -50,7 +51,7 @@ pub struct Connection {
 #[derive(Debug, Clone)]
 pub struct Node{
     pub flow_object: FlowObject,
-    pub oonnections: Connection
+    pub connections: Vec<Connection>
 }
 
 #[derive(Debug, Clone)]

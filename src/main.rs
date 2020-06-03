@@ -13,8 +13,8 @@ use quick_xml::events::Event;
 //use std::io::BufReader;
 mod process_bpmn;
 mod helper;
-use process_bpmn::Definitions;
-use crate::process_bpmn::Process;
+use process_bpmn::{Definitions, Process, Node, FlowObject };
+//use crate::process_bpmn::Connection;
 
 fn main() {
     //let _test=process_bpmn::FlowObject::Activity(process_bpmn::Activity::Task);
@@ -27,12 +27,13 @@ fn main() {
     println!("{}", file_path);
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
-    bpmn_file.read_to_string(&mut contents);
+    bpmn_file.read_to_string(&mut contents).unwrap();
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
     let mut buf = Vec::new();
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
     let mut proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
+    let mut node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
