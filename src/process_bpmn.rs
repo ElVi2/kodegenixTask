@@ -1,4 +1,5 @@
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum Event {
     StartEvent,
     IntermediateEvent,
@@ -6,6 +7,7 @@ pub enum Event {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum Activity {
     Task,
     SubProcess,
@@ -14,6 +16,7 @@ pub enum Activity {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum Gateway {
     ExclusiveGateway,
     EventBasedGateway,
@@ -23,19 +26,22 @@ pub enum Gateway {
     ParallelEventBasedGateway,
     ComplexGateway
 }
+
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum FlowObject {
     Event(Event),
     Activity(Activity),
     Gateway(Gateway)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Semantic;
+#[derive(Debug)]
+pub struct Process{
+    pub nodes: Vec<FlowObject>
+}
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Definitions {
     pub id: String,
-    #[serde(rename="process")]
-    pub semantic_process: Vec<String>
+    pub processes: Vec<Process>
 }
