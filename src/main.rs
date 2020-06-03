@@ -46,8 +46,8 @@ fn main() {
                                                             String::from_utf8_lossy(&attr.value).into_owned()
                                                             })
                                                             .collect::<Vec<_>>();
-                        println!("attributes values: {:?}",definition_attributes)
-                        //let temp=definition_attributes[0];
+                        println!("attributes values: {:?}",definition_attributes);
+                        println!("ID: {:?}",definition_attributes[0]);
                         //def:id=temp;
                     },
                     b"semantic:process"=>println!("Ok!"),
