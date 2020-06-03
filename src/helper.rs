@@ -1,9 +1,7 @@
 #[macro_use]
 
 use quick_xml;
-use quick_xml::Reader;
 use quick_xml::events::BytesStart;
-use quick_xml::events::Event;
 
 pub fn parse_attributes(e: &BytesStart)->Vec<String> {
     let definition_attributes = e.attributes().map(|a| {

@@ -14,6 +14,7 @@ use quick_xml::events::Event;
 mod process_bpmn;
 mod helper;
 use process_bpmn::Definitions;
+use crate::process_bpmn::Process;
 
 fn main() {
     //let _test=process_bpmn::FlowObject::Activity(process_bpmn::Activity::Task);
@@ -27,16 +28,11 @@ fn main() {
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
     bpmn_file.read_to_string(&mut contents);
-    //let deserialized: process_bpmn::Definitions = serde_xml_rs::de::from_str(&contents).unwrap();
-    //let deserialized: process_bpmn::Definitions = quick_xml::de::from_str(&contents).unwrap();
-   // println!("{}", deserialized.id);
-    //println!("{}", contents);
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
-    //let mut count = 0;
-    //let mut txt = Vec::new();
     let mut buf = Vec::new();
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
+    let mut proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
@@ -47,17 +43,37 @@ fn main() {
                         def.id=definition_attributes[0].clone();
                     },
                     b"semantic:process"=>{let process_attributes = helper::parse_attributes(e);
-                        println!("attributes values: {:?}",process_attributes);},
-                    b"semantic:startEvent"=>println!("Ok!"),
-                    b"semantic:incoming"=>println!("Ok!"),
-                    b"semantic:outgoing"=>println!("Ok!"),
-                    b"semantic:exclusiveGateway"=>println!("Ok!"),
-                    b"semantic:parallelGateway"=>println!("Ok!"),
-                    b"semantic:task"=>println!("Ok!"),
-                    b"semantic:userTask"=>println!("Ok!"),
-                    b"semantic:endEvent"=>println!("Ok!"),
-                    b"semantic:callActivity"=>println!("Ok!"),
-                    b"semantic:outgoing"=>println!("Ok!"),
+                        def.processes.push(proc);
+                        println!("attributes values: {:?}", &process_attributes);
+                        proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new()};
+                    },
+                    b"semantic:startEvent"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:incoming"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:outgoing"=>{let connection_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",connection_attributes);
+                    },
+                    b"semantic:exclusiveGateway"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:parallelGateway"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:task"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:userTask"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:endEvent"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
+                    b"semantic:callActivity"=>{let node_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",node_attributes);
+                    },
                     b"semantic:sequenceFlow"=>println!("Ok!"),
                     b"bpmndi:BPMNDiagram"=>println!("Ok!"),
                     b"bpmndi:BPMNPlane"=>println!("Ok!"),
@@ -72,7 +88,11 @@ fn main() {
                 //println!("{}", e.name().)
             },
             //Ok(Event::Text(e)) => txt.push(e.unescape_and_decode(&reader).unwrap()),
-            Ok(Event::Eof) => break, // exits the loop when reaching end of file
+            Ok(Event::Eof) => {
+                def.processes.push(proc);
+                proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
+                break;
+            }, // exits the loop when reaching end of file
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (), // There are several other `Event`s we do not consider here
         }
@@ -80,4 +100,5 @@ fn main() {
         // if we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low
         buf.clear();
     }
+    println!("Parsed file: {:?}", def);
 }

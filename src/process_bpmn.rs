@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Event {
     StartEvent,
     IntermediateEvent,
@@ -7,7 +7,7 @@ pub enum Event {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Activity {
     Task,
     SubProcess,
@@ -16,7 +16,7 @@ pub enum Activity {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Gateway {
     ExclusiveGateway,
     EventBasedGateway,
@@ -28,19 +28,39 @@ pub enum Gateway {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FlowObject {
     Event(Event),
     Activity(Activity),
     Gateway(Gateway)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub enum ConnectionType {
+    Ingoing,
+    Outgoing
+}
+
+#[derive(Debug, Clone)]
+pub struct Connection {
+    pub start: String,
+    pub end: String
+}
+
+#[derive(Debug, Clone)]
+pub struct Node{
+    pub flow_object: FlowObject,
+    pub oonnections: Connection
+}
+
+#[derive(Debug, Clone)]
 pub struct Process{
+    pub is_executable: bool,
+    pub id: String,
     pub nodes: Vec<FlowObject>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Definitions {
     pub id: String,
     pub processes: Vec<Process>
