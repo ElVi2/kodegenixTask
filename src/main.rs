@@ -12,6 +12,7 @@ use quick_xml::events::Event;
 //use std::mem;
 //use std::io::BufReader;
 mod process_bpmn;
+mod helper;
 use process_bpmn::Definitions;
 
 fn main() {
@@ -40,17 +41,13 @@ fn main() {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
-                    b"semantic:definitions" => {let definition_attributes = e.attributes().map(|a| {
-                                                            let attr = a.unwrap();
-
-                                                            String::from_utf8_lossy(&attr.value).into_owned()
-                                                            })
-                                                            .collect::<Vec<_>>();
-                        println!("attributes values: {:?}",definition_attributes);
-                        println!("ID: {:?}",definition_attributes[0]);
-                        //def:id=temp;
+                    b"semantic:definitions" => {let definition_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",&definition_attributes);
+                        println!("ID: {:?}",&definition_attributes[0]);
+                        def.id=definition_attributes[0].clone();
                     },
-                    b"semantic:process"=>println!("Ok!"),
+                    b"semantic:process"=>{let process_attributes = helper::parse_attributes(e);
+                        println!("attributes values: {:?}",process_attributes);},
                     b"semantic:startEvent"=>println!("Ok!"),
                     b"semantic:incoming"=>println!("Ok!"),
                     b"semantic:outgoing"=>println!("Ok!"),
