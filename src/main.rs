@@ -49,7 +49,10 @@ fn main() {
                         proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new()};
                     },
                     b"semantic:startEvent"=>{let node_attributes = helper::parse_attributes(e);
-                        println!("attributes values: {:?}",node_attributes);
+                        proc.nodes.push(node);
+                        println!("attributes values: {:?}",&node_attributes);
+                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+                        println!("attributes values: {:?}",&node_attributes);
                     },
                     b"semantic:incoming"=>{let node_attributes = helper::parse_attributes(e);
                         println!("attributes values: {:?}",node_attributes);

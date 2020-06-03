@@ -58,7 +58,7 @@ pub struct Node{
 pub struct Process{
     pub is_executable: bool,
     pub id: String,
-    pub nodes: Vec<FlowObject>
+    pub nodes: Vec<Node>
 }
 
 #[derive(Debug, Clone)]
