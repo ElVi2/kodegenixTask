@@ -115,16 +115,19 @@ fn main() {
                 proc.nodes.push(node);
                 def.processes.push(proc);
                 def.processes.remove(0);
-                //proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
                 break;
             }, // exits the loop when reaching end of file
 
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (), // There are several other `Event`s we do not consider here
         }
-
         // if we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low
         buf.clear();
     }
-    println!("Parsed file: {:?}", def);
+    //println!("Parsed file: {:?}", def);
+    for process in def.processes {
+        println!("Process {}:", process.id);
+        for node in process.nodes { println!("{:?}", node); }
+    }
+
 }

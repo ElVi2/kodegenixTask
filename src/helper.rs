@@ -1,4 +1,3 @@
-//#[macro_use]
 use super::*;
 use quick_xml;
 use quick_xml::events::BytesStart;
