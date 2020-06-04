@@ -4,8 +4,9 @@ use quick_xml::Reader;
 use quick_xml::events::Event;
 use process_bpmn;
 use helper;
-use process_bpmn::{Definitions, Process, Node, FlowObject};
+use process_bpmn::{Definitions, Process, SubProcess, Node, FlowObject};
 use helper::{parse_attributes, get_id, get_name};
+
 
 
 pub fn parse_process(contents: String)->process_bpmn::Definitions {
@@ -127,6 +128,9 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     def
 }
 
-//pub fn parse_subprocess() {
+/*
+pub fn parse_subprocess(reader: Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>) {
+    loop {
 
-//}
+    }
+}*/

@@ -70,6 +70,13 @@ pub struct Process{
 }
 
 #[derive(Debug, Clone)]
+pub struct SubProcess{
+    pub is_executable: bool,
+    pub id: String,
+    pub nodes: Vec<Node>
+}
+
+#[derive(Debug, Clone)]
 pub struct Definitions {
     pub id: String,
     pub processes: Vec<Process>
