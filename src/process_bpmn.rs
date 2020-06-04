@@ -44,8 +44,9 @@ pub enum ConnectionType {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Connection {
-    pub start: String,
-    pub end: String
+    //pub my_coord: String,
+    pub opposite_elem: String,
+    pub connection_type: ConnectionType
 }
 
 #[derive(Debug, Clone)]

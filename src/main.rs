@@ -32,8 +32,9 @@ fn main() {
     reader.trim_text(true);
     let mut buf = Vec::new();
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
-    let mut proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
+    let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
     let mut node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut text_switch = String::new();
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
@@ -44,21 +45,25 @@ fn main() {
                         def.id=definition_attributes[0].clone();
                     },
                     b"semantic:process"=>{let process_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        proc.nodes.remove(0);
+                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
                         def.processes.push(proc);
                         println!("attributes values: {:?}", &process_attributes);
                         proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new()};
                     },
                     b"semantic:startEvent"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        println!("attributes values: {:?}",&node_attributes);
-                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+                        node=Node {flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
                         println!("attributes values: {:?}",&node_attributes);
                     },
                     b"semantic:incoming"=>{let node_attributes = helper::parse_attributes(e);
-                        println!("attributes values: {:?}",node_attributes);
+                        text_switch="incoming".to_string();
+                        println!("{ }",text_switch);
                     },
-                    b"semantic:outgoing"=>{let connection_attributes = helper::parse_attributes(e);
-                        println!("attributes values: {:?}",connection_attributes);
+                    b"semantic:outgoing"=>{
+                        text_switch="outgoing".to_string();
+                        println!("{ }",text_switch);
                     },
                     b"semantic:exclusiveGateway"=>{let node_attributes = helper::parse_attributes(e);
                         println!("attributes values: {:?}",node_attributes);
@@ -91,12 +96,20 @@ fn main() {
                }
                 //println!("{}", e.name().)
             },
-            //Ok(Event::Text(e)) => txt.push(e.unescape_and_decode(&reader).unwrap()),
+            Ok(Event::Text(e)) => {
+                //match text_switch{
+
+                //}
+                println!("{:?}", e.unescape_and_decode(&reader).unwrap())
+            },
             Ok(Event::Eof) => {
+                proc.nodes.push(node);
                 def.processes.push(proc);
+                def.processes.remove(0);
                 proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
                 break;
             }, // exits the loop when reaching end of file
+
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (), // There are several other `Event`s we do not consider here
         }
