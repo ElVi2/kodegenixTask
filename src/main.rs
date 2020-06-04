@@ -13,7 +13,7 @@ use quick_xml::events::Event;
 //use std::io::BufReader;
 mod process_bpmn;
 mod helper;
-use process_bpmn::{Definitions, Process, Node, FlowObject };
+use process_bpmn::{Definitions, Process, Node, FlowObject, ConnectionType };
 //use crate::process_bpmn::Connection;
 
 fn main() {
@@ -34,14 +34,14 @@ fn main() {
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
     let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
     let mut node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
-    let mut text_switch = String::new();
+    let mut text_switch = 0; //this will indicate which tag was the last if there is plain text inside the tag
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
                     b"semantic:definitions" => {let definition_attributes = helper::parse_attributes(e);
-                        println!("attributes values: {:?}",&definition_attributes);
-                        println!("ID: {:?}",&definition_attributes[0]);
+                        //println!("attributes values: {:?}",&definition_attributes);
+                        //println!("ID: {:?}",&definition_attributes[0]);
                         def.id=definition_attributes[0].clone();
                     },
                     b"semantic:process"=>{let process_attributes = helper::parse_attributes(e);
@@ -58,11 +58,11 @@ fn main() {
                         println!("attributes values: {:?}",&node_attributes);
                     },
                     b"semantic:incoming"=>{
-                        text_switch="incoming".to_string();
+                        text_switch=1;  //set the switch to recognize the incoming connection tag
                         println!("{ }",text_switch);
                     },
                     b"semantic:outgoing"=>{
-                        text_switch="outgoing".to_string();
+                        text_switch=2;  //set the switch to recognize the outgoing connection tag
                         println!("{ }",text_switch);
                     },
                     b"semantic:exclusiveGateway"=>{let node_attributes = helper::parse_attributes(e);
@@ -97,9 +97,13 @@ fn main() {
                 //println!("{}", e.name().)
             },
             Ok(Event::Text(e)) => {
-                match text_switch{
-                    _ =>  println!(),                }
-                println!("{:?}", &e.unescape_and_decode(&reader).unwrap())
+                let text_var=e.unescape_and_decode(&reader).unwrap();
+                match text_switch { // how do we handle the text inside the tags
+                    1 => helper::add_connection(&mut node, text_switch, text_var.clone()),
+                    2 => helper::add_connection(&mut node, text_switch, text_var.clone()),
+                    _ =>  println!(),
+                }
+                println!("{:?}", &text_var);
             },
             Ok(Event::Eof) => {
                 proc.nodes.push(node);

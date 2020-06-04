@@ -1,3 +1,5 @@
+use super::*;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -38,14 +40,16 @@ pub enum FlowObject {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum ConnectionType {
-    Ingoing,
+    Incoming,
     Outgoing
 }
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Connection {
-    //pub my_coord: String,
-    pub opposite_elem: String,
+    pub id: String,
+    pub name: String,
+    pub source_ref: String,
+    pub target_ref: String,
     pub connection_type: ConnectionType
 }
 
