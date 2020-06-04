@@ -23,7 +23,7 @@ fn main() {
     //io::stdin()
         //.read_line(&mut file_path)
         //.expect("Failed to read line!");
-    let file_path="F:\\Models.Diagrams\\Call Activity.bpmn";
+    let file_path="data/Call Activity.bpmn";
     println!("{}", file_path);
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
@@ -57,7 +57,7 @@ fn main() {
                         node=Node {flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
                         println!("attributes values: {:?}",&node_attributes);
                     },
-                    b"semantic:incoming"=>{let node_attributes = helper::parse_attributes(e);
+                    b"semantic:incoming"=>{
                         text_switch="incoming".to_string();
                         println!("{ }",text_switch);
                     },
@@ -97,16 +97,15 @@ fn main() {
                 //println!("{}", e.name().)
             },
             Ok(Event::Text(e)) => {
-                //match text_switch{
-
-                //}
-                println!("{:?}", e.unescape_and_decode(&reader).unwrap())
+                match text_switch{
+                    _ =>  println!(),                }
+                println!("{:?}", &e.unescape_and_decode(&reader).unwrap())
             },
             Ok(Event::Eof) => {
                 proc.nodes.push(node);
                 def.processes.push(proc);
                 def.processes.remove(0);
-                proc=Process{is_executable: false, id:" ".to_string(), nodes: Vec::new()};
+                proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
                 break;
             }, // exits the loop when reaching end of file
 
