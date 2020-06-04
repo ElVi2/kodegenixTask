@@ -1,20 +1,11 @@
-#[macro_use]
-//extern crate quick_xml;
-
-//use std::io;
 use std::io::Read;
 use std::fs::File;
 use quick_xml;
-//use crate::process_bpmn::Activity;
 use quick_xml::Reader;
 use quick_xml::events::Event;
-//use quick_xml::de::{from_str, DeError};
-//use std::mem;
-//use std::io::BufReader;
 mod process_bpmn;
 mod helper;
-use process_bpmn::{Definitions, Process, Node, FlowObject, ConnectionType };
-//use crate::process_bpmn::Connection;
+use process_bpmn::{Definitions, Process, Node, FlowObject};
 
 fn main() {
     //let _test=process_bpmn::FlowObject::Activity(process_bpmn::Activity::Task);
@@ -66,23 +57,36 @@ fn main() {
                         println!("{ }",text_switch);
                     },
                     b"semantic:exclusiveGateway"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:parallelGateway"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:task"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::Task), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:userTask"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:endEvent"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:callActivity"=>{let node_attributes = helper::parse_attributes(e);
+                        proc.nodes.push(node);
+                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
+                    /*
                     b"semantic:sequenceFlow"=>println!("Ok!"),
                     b"bpmndi:BPMNDiagram"=>println!("Ok!"),
                     b"bpmndi:BPMNPlane"=>println!("Ok!"),
@@ -91,8 +95,10 @@ fn main() {
                     b"dc:Bounds"=>println!("Ok!"),
                     b"bpmndi:BPMNEdge"=>println!("Ok!"),
                     b"di:waypoint"=>println!("Ok!"),
-                    b"bpmndi:BPMNDiagram"=>println!("Ok!"),
-                    _ => println!("{}", String::from_utf8_lossy(e.name())),
+                    b"bpmndi:BPMNDiagram"=>println!("Ok!"),*/
+                    //commented code for future usage
+                    //_ => println!("{}", String::from_utf8_lossy(e.name())),
+                    _ => println!(),
                }
                 //println!("{}", e.name().)
             },
@@ -109,7 +115,7 @@ fn main() {
                 proc.nodes.push(node);
                 def.processes.push(proc);
                 def.processes.remove(0);
-                proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
+                //proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
                 break;
             }, // exits the loop when reaching end of file
 

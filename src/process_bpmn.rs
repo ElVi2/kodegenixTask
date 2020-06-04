@@ -1,5 +1,3 @@
-use super::*;
-
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -14,7 +12,8 @@ pub enum Activity {
     Task,
     SubProcess,
     Transaction,
-    CallActivity
+    CallActivity,
+    UserTask
 }
 
 #[allow(dead_code)]

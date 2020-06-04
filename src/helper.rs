@@ -15,8 +15,8 @@ pub fn parse_attributes(e: &BytesStart)->Vec<String> {
     definition_attributes
 }
 
-pub fn add_connection(node: &mut process_bpmn::Node, switch: i32, text_var: String) {
-    node.connections.push(process_bpmn::Connection{id: text_var.clone(),
+pub fn add_connection(node: &mut Node, switch: i32, text_var: String) {
+    node.connections.push(Connection{id: text_var.clone(),
         name: "default".to_string(), connection_type: ConnectionType::Incoming,
         source_ref: "default".to_string(), target_ref: "default".to_string()});
     //let length = node.connections.len();
