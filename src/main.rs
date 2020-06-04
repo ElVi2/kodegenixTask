@@ -6,6 +6,7 @@ use quick_xml::events::Event;
 mod process_bpmn;
 mod helper;
 use process_bpmn::{Definitions, Process, Node, FlowObject};
+use helper::{parse_attributes, add_connection, get_id, get_name};
 
 fn main() {
     //let _test=process_bpmn::FlowObject::Activity(process_bpmn::Activity::Task);
@@ -24,7 +25,7 @@ fn main() {
     let mut buf = Vec::new();
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
     let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
-    let mut node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     let mut text_switch = 0; //this will indicate which tag was the last if there is plain text inside the tag
     loop {
         match reader.read_event(&mut buf) {
@@ -38,14 +39,14 @@ fn main() {
                     b"semantic:process"=>{let process_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
                         proc.nodes.remove(0);
-                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+                        node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
                         def.processes.push(proc);
                         println!("attributes values: {:?}", &process_attributes);
                         proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new()};
                     },
                     b"semantic:startEvent"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
                         println!("attributes values: {:?}",&node_attributes);
                     },
                     b"semantic:incoming"=>{
@@ -58,32 +59,32 @@ fn main() {
                     },
                     b"semantic:exclusiveGateway"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:parallelGateway"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:task"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::Task), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Activity(process_bpmn::Activity::Task), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:userTask"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:endEvent"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     b"semantic:callActivity"=>{let node_attributes = helper::parse_attributes(e);
                         proc.nodes.push(node);
-                        node=Node {flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity), connections: Vec::new()};
+                        node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes), flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity), connections: Vec::new()};
                         println!("attributes values: {:?}",node_attributes);
                     },
                     /*
@@ -112,6 +113,7 @@ fn main() {
                 println!("{:?}", &text_var);
             },
             Ok(Event::Eof) => {
+                proc.nodes.remove(0);
                 proc.nodes.push(node);
                 def.processes.push(proc);
                 def.processes.remove(0);

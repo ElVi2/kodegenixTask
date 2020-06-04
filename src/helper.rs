@@ -23,3 +23,13 @@ pub fn add_connection(node: &mut Node, switch: i32, text_var: String) {
         node.connections.last_mut().unwrap().connection_type=ConnectionType::Outgoing;
     }
 }
+
+pub fn get_name(v: &Vec<String>) -> String {
+    let length=v.len();
+    v[length-2].clone()
+}
+
+pub fn get_id(v: &Vec<String>) -> String {
+    let length=v.len();
+    v[length-1].clone()
+}

@@ -54,6 +54,8 @@ pub struct Connection {
 
 #[derive(Debug, Clone)]
 pub struct Node{
+    pub name: String,
+    pub id: String,
     pub flow_object: FlowObject,
     pub connections: Vec<Connection>
 }
