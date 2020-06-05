@@ -18,7 +18,6 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     let mut node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     let mut text_switch = 0; //this will indicate which tag was the last if there is plain text inside the tag
     loop {
-        //println!("{:?}", buf);
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
@@ -128,10 +127,10 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     }
     def
 }
-/*
+
 pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>) {
     loop {
-        match reader.read_event(&mut buf) {
+        match reader.read_event(buf) {
             Ok(Event::Start(ref e)) => {}
             Ok(Event::Text(e)) => {
                 let text_var=e.unescape_and_decode(&reader).unwrap();
@@ -146,4 +145,3 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubPr
 
     }
 }
-*/
