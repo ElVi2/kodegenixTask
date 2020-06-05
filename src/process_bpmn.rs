@@ -66,14 +66,16 @@ pub struct Node{
 pub struct Process{
     pub is_executable: bool,
     pub id: String,
-    pub nodes: Vec<Node>
+    pub nodes: Vec<Node>,
+    pub subprocesses: Vec<SubProcess>
 }
 
 #[derive(Debug, Clone)]
 pub struct SubProcess{
     pub is_executable: bool,
     pub id: String,
-    pub nodes: Vec<Node>
+    pub nodes: Vec<Node>,
+    pub subprocesses: Vec<SubProcess>
 }
 
 #[derive(Debug, Clone)]

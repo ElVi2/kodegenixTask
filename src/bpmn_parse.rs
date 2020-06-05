@@ -14,10 +14,11 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     reader.trim_text(true);
     let mut buf = Vec::new();
     let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
-    let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new()};
+    let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new(), subprocesses: Vec::new()};
     let mut node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     let mut text_switch = 0; //this will indicate which tag was the last if there is plain text inside the tag
     loop {
+        //println!("{:?}", buf);
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
@@ -32,7 +33,7 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                         node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
                         def.processes.push(proc);
                         println!("attributes values: {:?}", &process_attributes);
-                        proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new()};
+                        proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(), id: process_attributes[1].clone(), nodes: Vec::new(), subprocesses: Vec::new()};
                     },
                     b"semantic:startEvent"=>{let node_attributes = parse_attributes(e);
                         proc.nodes.push(node);
@@ -127,10 +128,22 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     }
     def
 }
-
 /*
-pub fn parse_subprocess(reader: Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>) {
+pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>) {
     loop {
+        match reader.read_event(&mut buf) {
+            Ok(Event::Start(ref e)) => {}
+            Ok(Event::Text(e)) => {
+                let text_var=e.unescape_and_decode(&reader).unwrap();
+                println!("{:?}", &text_var);
+            },
+            Ok(Event::Eof) => {
+            }, // exits the loop when reaching end of file
+
+            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
+            _ => (),
+        }
 
     }
-}*/
+}
+*/
