@@ -1,5 +1,3 @@
-
-
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -97,3 +95,14 @@ pub fn add_connection(node: &mut Node, switch: i32, text_var: String) {
         node.connections.last_mut().unwrap().connection_type=ConnectionType::Outgoing;
     }
 }
+ /*
+fn search_subprocess(id: String, cn: &mut Connection, subproc: &'_ mut SubProcess) {
+
+}
+
+pub fn search_connection(id: &str, proc: &'_ mut Process) -> Result<&'_ mut Connection, String> {
+    for process in space {
+    }
+    Err("Nothing found")
+}
+  */
