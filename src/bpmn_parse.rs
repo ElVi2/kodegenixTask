@@ -103,26 +103,49 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubPr
         start_quantity: attr[3].clone().parse::<u64>().unwrap(),
         completion_quantity: attr[1].clone().parse::<u64>().unwrap(),
         up_for_compensation: attr[2].clone().parse::<bool>().unwrap(),
-        id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(), subprocesses: Vec::new()};
+        id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(),
+        subprocesses: Vec::new(), connections: Vec::new()};
     let mut node = Node {id: "default".to_string(), name: "default".to_string(),
         flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     let mut text_switch = 0;
+    //let mut start_switch=false;
     loop {
         println!("Cycle!");
         match reader.read_event(buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
-                    _ => ()
+                    b"semantic:incoming"=>{
+                        text_switch=1;  //set the switch to recognize the incoming connection tag
+                        println!("{ }",text_switch);
+                    },
+                    b"semantic:outgoing"=>{
+                        text_switch=2;  //set the switch to recognize the outgoing connection tag
+                        println!("{ }",text_switch);
+                    },
+                    _ => {
+                        let node_attributes = parse_attributes(e);
+                        if let Ok(n) = parse_node(e) {
+                            subproc.nodes.push(node);
+                            node = n;
+                            println!("attributes values: {:?}", node_attributes);
+                        }
+                    },
                 }
             }
             Ok(Event::Text(e)) => {
                 let text_var=e.unescape_and_decode(&reader).unwrap();
+                match text_switch { // how do we handle the text inside the tags
+                    1 => process_bpmn::add_connection(&mut node, text_switch, text_var.clone()),
+                    2 => process_bpmn::add_connection(&mut node, text_switch, text_var.clone()),
+                    _ =>  println!(),
+                }
                 println!("{:?}", &text_var);
             },
             Ok(Event::End(ref e)) => {
                 if e.name() == b"semantic:subProcess" {
-                    //subproc.nodes.remove(0);
                     subproc.nodes.push(node);
+                    subproc.connections.clone_from(&subproc.nodes[0].connections);
+                    subproc.nodes.remove(0);
                     subprocesses.push(subproc);
                     break;
                 }

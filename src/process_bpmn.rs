@@ -78,7 +78,8 @@ pub struct SubProcess{
     pub triggered_by_event: bool,
     pub up_for_compensation: bool,
     pub nodes: Vec<Node>,
-    pub subprocesses: Vec<SubProcess>
+    pub subprocesses: Vec<SubProcess>,
+    pub connections: Vec<Connection>,
 }
 
 #[derive(Debug, Clone)]
