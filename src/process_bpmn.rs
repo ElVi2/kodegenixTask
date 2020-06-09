@@ -36,6 +36,18 @@ pub struct CallActivity {
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
+pub struct ParallelGateway {
+    gateway_direction: String
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct ExclusiveGateway {
+    gateway_direction: String
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
 pub enum Event {
     StartEvent,
     IntermediateEvent,
@@ -54,9 +66,9 @@ pub enum Activity {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Gateway {
-    ExclusiveGateway,
+    ExclusiveGateway(ExclusiveGateway),
     EventBasedGateway,
-    ParallelGateway,
+    ParallelGateway(ParallelGateway),
     InclusiveGateway,
     ExclusiveEventBasedGateway,
     ParallelEventBasedGateway,
