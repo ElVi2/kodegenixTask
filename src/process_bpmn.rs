@@ -1,3 +1,39 @@
+/*
+struct StartEvent {
+    id: String,
+    name: String
+}
+
+struct IntermediateEvent {
+    id: String,
+    name: String
+}
+
+struct EndEvent {
+    id: String,
+    name: String
+}*/
+
+#[derive(Debug, Clone)]
+pub struct UserTask {
+    pub implementation: String,
+    pub start_quantity: u64,
+    pub completion_quantity: u64,
+    pub is_for_compensation: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct Task {
+    pub start_quantity: u64,
+    pub completion_quantity: u64,
+    pub is_for_compensation: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct CallActivity {
+    pub called_element: String,
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -9,10 +45,10 @@ pub enum Event {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Activity {
-    Task,
+    Task(Task),
     Transaction,
-    CallActivity,
-    UserTask
+    CallActivity(CallActivity),
+    UserTask(UserTask)
 }
 
 #[allow(dead_code)]
@@ -74,7 +110,7 @@ pub struct SubProcess{
     pub start_quantity: u64,
     pub completion_quantity: u64,
     pub triggered_by_event: bool,
-    pub up_for_compensation: bool,
+    pub is_for_compensation: bool,
     pub nodes: Vec<Node>,
     pub subprocesses: Vec<SubProcess>,
     pub connections: Vec<Connection>,

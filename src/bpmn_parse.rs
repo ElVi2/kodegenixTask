@@ -7,8 +7,6 @@ use helper;
 use process_bpmn::{Definitions, SubProcess, Process, Node, FlowObject};
 use helper::{parse_attributes, get_id, get_name};
 
-
-
 pub fn parse_process(contents: String)->process_bpmn::Definitions {
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
@@ -98,11 +96,11 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     def
 }
 
-pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>, attr: Vec<String>) {
+fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>, attr: Vec<String>) {
     let mut subproc=SubProcess{triggered_by_event: attr[0].clone().parse::<bool>().unwrap(),
         start_quantity: attr[3].clone().parse::<u64>().unwrap(),
         completion_quantity: attr[1].clone().parse::<u64>().unwrap(),
-        up_for_compensation: attr[2].clone().parse::<bool>().unwrap(),
+        is_for_compensation: attr[2].clone().parse::<bool>().unwrap(),
         id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(),
         subprocesses: Vec::new(), connections: Vec::new()};
     let mut node = Node {id: "default".to_string(), name: "default".to_string(),
@@ -157,14 +155,12 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubPr
     }
 }
 
-pub fn parse_node(e: &BytesStart) -> Result<Node, String> {
+fn parse_node(e: &BytesStart) -> Result<Node, String> {
     let node;
     //=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     match e.name() {
-        b"semantic:startEvent"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
-        },
+        b"semantic:startEvent"=>node=parse_start_event(e),
+        b"semantic:intermediateEvent"=>node=parse_intermediate_event(e),
         b"semantic:exclusiveGateway"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
@@ -173,23 +169,68 @@ pub fn parse_node(e: &BytesStart) -> Result<Node, String> {
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
         },
-        b"semantic:task"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Activity(process_bpmn::Activity::Task), connections: Vec::new()};
+        b"semantic:task"=>node=parse_task(e),
+        b"semantic:userTask"=>node=parse_user_task(e),
+        b"semantic:endEvent"=> node=parse_end_event(e),
+        b"semantic:callActivity"=>node=parse_call_activity(e),
+
+        _ => {
+            println!("{}", String::from_utf8_lossy(e.name()));
+            return Err("Invalid node".into())
         },
-        b"semantic:userTask"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask), connections: Vec::new()};
-        },
-        b"semantic:endEvent"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
-        },
-        b"semantic:callActivity"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity), connections: Vec::new()};
-        },
-        _ => return Err("Invalid node".into()),
     }
     Ok(node)
+}
+
+fn parse_start_event(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
+    node
+}
+
+fn parse_intermediate_event(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Event(process_bpmn::Event::IntermediateEvent), connections: Vec::new()};
+    node
+}
+
+fn parse_end_event(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
+    node
+}
+
+fn parse_task(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Activity(process_bpmn::Activity::Task(
+            process_bpmn::Task{completion_quantity: node_attributes[0].clone().parse::<u64>().unwrap(),
+                start_quantity: node_attributes[2].clone().parse::<u64>().unwrap(),
+                is_for_compensation: node_attributes[1].clone().parse::<bool>().unwrap(),
+            })), connections: Vec::new()};
+    node
+}
+
+fn parse_user_task(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask(
+            process_bpmn::UserTask{completion_quantity: node_attributes[1].clone().parse::<u64>().unwrap(),
+            start_quantity: node_attributes[3].clone().parse::<u64>().unwrap(),
+            is_for_compensation: node_attributes[2].clone().parse::<bool>().unwrap(),
+                implementation: node_attributes[0].clone(),
+        })), connections: Vec::new()};
+    node
+}
+
+fn parse_call_activity(e: &BytesStart) ->Node {
+    let node_attributes = parse_attributes(e);
+    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+        flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity(process_bpmn::CallActivity{
+            called_element: node_attributes[0].clone(),
+    })), connections: Vec::new()};
+    node
 }
