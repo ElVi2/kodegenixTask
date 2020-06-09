@@ -110,7 +110,7 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubPr
     let mut text_switch = 0;
     //let mut start_switch=false;
     loop {
-        println!("Cycle!");
+        //println!("Cycle!");
         match reader.read_event(buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
@@ -158,7 +158,7 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubPr
 }
 
 pub fn parse_node(e: &BytesStart) -> Result<Node, String> {
-    let mut node;
+    let node;
     //=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     match e.name() {
         b"semantic:startEvent"=>{let node_attributes = parse_attributes(e);
