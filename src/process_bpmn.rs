@@ -12,7 +12,6 @@ pub enum Event {
 #[derive(Debug, Clone)]
 pub enum Activity {
     Task,
-    SubProcess,
     Transaction,
     CallActivity,
     UserTask
@@ -67,15 +66,7 @@ pub struct Process{
     pub is_executable: bool,
     pub id: String,
     pub nodes: Vec<Node>,
-    pub subprocesses: Vec<SubProcess>
-}
-
-#[derive(Debug, Clone)]
-pub struct SubProcess{
-    pub is_executable: bool,
-    pub id: String,
-    pub nodes: Vec<Node>,
-    pub subprocesses: Vec<SubProcess>
+    pub subprocesses: Vec<Process>
 }
 
 #[derive(Debug, Clone)]

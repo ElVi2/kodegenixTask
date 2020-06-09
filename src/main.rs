@@ -1,3 +1,4 @@
+#![feature(try_blocks)]
 use std::io::Read;
 use std::fs::File;
 mod process_bpmn;
