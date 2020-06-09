@@ -12,7 +12,7 @@ fn main() {
     //io::stdin()
         //.read_line(&mut file_path)
         //.expect("Failed to read line!");
-    let file_path="data/Process.bpmn";
+    let file_path="data/Collapsed SubProcess.bpmn";
     println!("{}", file_path);
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
@@ -22,6 +22,6 @@ fn main() {
     for process in def.processes {
         println!("Process {}:", process.id);
         for node in process.nodes { println!("{:?}", node); }
+        for subprocess in process.subprocesses { println!("{:?}", subprocess); }
     }
-
 }

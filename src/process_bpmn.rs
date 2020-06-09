@@ -66,7 +66,19 @@ pub struct Process{
     pub is_executable: bool,
     pub id: String,
     pub nodes: Vec<Node>,
-    pub subprocesses: Vec<Process>
+    pub subprocesses: Vec<SubProcess>
+}
+
+#[derive(Debug, Clone)]
+pub struct SubProcess{
+    pub id: String,
+    pub name: String,
+    pub start_quantity: u64,
+    pub completion_quantity: u64,
+    pub triggered_by_event: bool,
+    pub up_for_compensation: bool,
+    pub nodes: Vec<Node>,
+    pub subprocesses: Vec<SubProcess>
 }
 
 #[derive(Debug, Clone)]

@@ -4,7 +4,7 @@ use quick_xml::Reader;
 use quick_xml::events::{Event, BytesStart};
 use process_bpmn;
 use helper;
-use process_bpmn::{Definitions, Process, Node, FlowObject};
+use process_bpmn::{Definitions, SubProcess, Process, Node, FlowObject};
 use helper::{parse_attributes, get_id, get_name};
 
 
@@ -22,8 +22,6 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
                     b"semantic:definitions" => {let definition_attributes = parse_attributes(e);
-                        //println!("attributes values: {:?}",&definition_attributes);
-                        //println!("ID: {:?}",&definition_attributes[0]);
                         def.id=definition_attributes[0].clone();
                     },
                     b"semantic:process"=>{let process_attributes = parse_attributes(e);
@@ -46,6 +44,12 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                     b"semantic:sequenceFlow"=> {
 
                     },
+                    b"semantic:subProcess" => {
+                        println!("Found subprocess!");
+                        let subprocess_attributes = parse_attributes(e);
+                        println!("attributes values: {:?}", &subprocess_attributes);
+                        parse_subprocess(&mut reader, &mut proc.subprocesses, &mut buf, subprocess_attributes);
+                    },
                     /*
                     b"bpmndi:BPMNDiagram"=>println!("Ok!"),
                     b"bpmndi:BPMNPlane"=>println!("Ok!"),
@@ -67,7 +71,6 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                         }
                     },
                 }
-                //println!("{}", e.name().)
             },
             Ok(Event::Text(e)) => {
                 let text_var=e.unescape_and_decode(&reader).unwrap();
@@ -95,17 +98,35 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     def
 }
 
-pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<Process>, buf: &mut Vec<u8>) {
+pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>, attr: Vec<String>) {
+    let mut subproc=SubProcess{triggered_by_event: attr[0].clone().parse::<bool>().unwrap(),
+        start_quantity: attr[3].clone().parse::<u64>().unwrap(),
+        completion_quantity: attr[1].clone().parse::<u64>().unwrap(),
+        up_for_compensation: attr[2].clone().parse::<bool>().unwrap(),
+        id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(), subprocesses: Vec::new()};
+    let mut node = Node {id: "default".to_string(), name: "default".to_string(),
+        flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut text_switch = 0;
     loop {
+        println!("Cycle!");
         match reader.read_event(buf) {
-            Ok(Event::Start(ref e)) => {}
+            Ok(Event::Start(ref e)) => {
+                match e.name() {
+                    _ => ()
+                }
+            }
             Ok(Event::Text(e)) => {
                 let text_var=e.unescape_and_decode(&reader).unwrap();
                 println!("{:?}", &text_var);
             },
-            Ok(Event::Eof) => {
-            }, // exits the loop when reaching end of file
-
+            Ok(Event::End(ref e)) => {
+                if e.name() == b"semantic:subProcess" {
+                    //subproc.nodes.remove(0);
+                    subproc.nodes.push(node);
+                    subprocesses.push(subproc);
+                    break;
+                }
+            },
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (),
         }
@@ -114,43 +135,36 @@ pub fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<Proce
 }
 
 pub fn parse_node(e: &BytesStart) -> Result<Node, String> {
-    let mut successfully_parsed = true;
-    let mut node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut node;
+    //=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
     match e.name() {
         b"semantic:startEvent"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
-            println!("attributes values: {:?}",&node_attributes);
         },
         b"semantic:exclusiveGateway"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         b"semantic:parallelGateway"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         b"semantic:task"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Activity(process_bpmn::Activity::Task), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         b"semantic:userTask"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         b"semantic:endEvent"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         b"semantic:callActivity"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
                 flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity), connections: Vec::new()};
-            println!("attributes values: {:?}",node_attributes);
         },
         _ => return Err("Invalid node".into()),
     }
