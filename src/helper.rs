@@ -11,6 +11,7 @@ pub fn parse_attributes(e: &BytesStart)->Vec<String> {
     definition_attributes
 }
 
+/*
 pub fn get_name(v: &Vec<String>) -> String {
     let length=v.len();
     v[length-2].clone()
@@ -19,4 +20,16 @@ pub fn get_name(v: &Vec<String>) -> String {
 pub fn get_id(v: &Vec<String>) -> String {
     let length=v.len();
     v[length-1].clone()
+}*/
+
+pub fn get_value_from_key(e: &BytesStart, key: &str) ->Result<String, String> {
+    let key_u8=key.as_bytes();
+    for attr in e.attributes() {
+        let unwrapped=attr.unwrap().clone();
+        if unwrapped.key==key_u8 {
+            return Ok(String::from_utf8_lossy(&unwrapped.value).into_owned());
+        }
+        //println!("{:?}", attr.unwrap());
+    }
+    Err("Not found".to_string())
 }

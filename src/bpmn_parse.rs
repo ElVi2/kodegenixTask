@@ -5,7 +5,7 @@ use quick_xml::events::{Event, BytesStart};
 use process_bpmn;
 use helper;
 use process_bpmn::{Definitions, SubProcess, Process, Node, FlowObject};
-use helper::{parse_attributes, get_id, get_name};
+use helper::{parse_attributes, get_value_from_key};
 
 pub fn parse_process(contents: String)->process_bpmn::Definitions {
     let mut reader = Reader::from_str(&contents);
@@ -161,18 +161,8 @@ fn parse_node(e: &BytesStart) -> Result<Node, String> {
     match e.name() {
         b"semantic:startEvent"=>node=parse_start_event(e),
         b"semantic:intermediateEvent"=>node=parse_intermediate_event(e),
-        b"semantic:exclusiveGateway"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway(
-                    process_bpmn::ExclusiveGateway{gateway_direction: node_attributes[0].clone()})),
-                connections: Vec::new()};
-        },
-        b"semantic:parallelGateway"=>{let node_attributes = parse_attributes(e);
-            node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway(
-                    process_bpmn::ParallelGateway{gateway_direction: node_attributes[0].clone()})),
-                connections: Vec::new()};
-        },
+        b"semantic:exclusiveGateway"=>node=parse_exclusive_gateway(e),
+        b"semantic:parallelGateway"=>node=parse_parallel_gateway(e),
         b"semantic:task"=>node=parse_task(e),
         b"semantic:userTask"=>node=parse_user_task(e),
         b"semantic:endEvent"=> node=parse_end_event(e),
@@ -187,54 +177,72 @@ fn parse_node(e: &BytesStart) -> Result<Node, String> {
 }
 
 fn parse_start_event(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Event(process_bpmn::Event::StartEvent), connections: Vec::new()};
     node
 }
 
 fn parse_intermediate_event(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Event(process_bpmn::Event::IntermediateEvent), connections: Vec::new()};
     node
 }
 
 fn parse_end_event(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Event(process_bpmn::Event::EndEvent), connections: Vec::new()};
     node
 }
 
 fn parse_task(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Activity(process_bpmn::Activity::Task(
-            process_bpmn::Task{completion_quantity: node_attributes[0].clone().parse::<u64>().unwrap(),
-                start_quantity: node_attributes[2].clone().parse::<u64>().unwrap(),
-                is_for_compensation: node_attributes[1].clone().parse::<bool>().unwrap(),
+            process_bpmn::Task{completion_quantity: get_value_from_key(e, "completionQuantity").unwrap().parse::<u64>().unwrap(),
+                start_quantity: get_value_from_key(e, "startQuantity").unwrap().parse::<u64>().unwrap(),
+                is_for_compensation: get_value_from_key(e, "isForCompensation").unwrap().parse::<bool>().unwrap(),
             })), connections: Vec::new()};
     node
 }
 
 fn parse_user_task(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Activity(process_bpmn::Activity::UserTask(
-            process_bpmn::UserTask{completion_quantity: node_attributes[1].clone().parse::<u64>().unwrap(),
-            start_quantity: node_attributes[3].clone().parse::<u64>().unwrap(),
-            is_for_compensation: node_attributes[2].clone().parse::<bool>().unwrap(),
-                implementation: node_attributes[0].clone(),
+            process_bpmn::UserTask{completion_quantity: get_value_from_key(e, "completionQuantity").unwrap().parse::<u64>().unwrap(),
+            start_quantity: get_value_from_key(e, "startQuantity").unwrap().parse::<u64>().unwrap(),
+            is_for_compensation: get_value_from_key(e, "isForCompensation").unwrap().parse::<bool>().unwrap(),
+                implementation: get_value_from_key(e, "implementation").unwrap().clone(),
         })), connections: Vec::new()};
     node
 }
 
 fn parse_call_activity(e: &BytesStart) ->Node {
-    let node_attributes = parse_attributes(e);
-    let node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
         flow_object: FlowObject::Activity(process_bpmn::Activity::CallActivity(process_bpmn::CallActivity{
-            called_element: node_attributes[0].clone(),
+            called_element: get_value_from_key(e, "calledElement").unwrap(),
     })), connections: Vec::new()};
+    node
+}
+
+fn parse_exclusive_gateway(e: &BytesStart) ->Node {
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
+        flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway(
+            process_bpmn::ExclusiveGateway{gateway_direction: get_value_from_key(e, "gatewayDirection").unwrap()})),
+        connections: Vec::new()};
+    node
+}
+
+fn parse_parallel_gateway(e: &BytesStart) ->Node {
+    let node=Node {id: get_value_from_key(e, "id").unwrap(),
+        name: get_value_from_key(e, "name").unwrap(),
+        flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway(
+            process_bpmn::ParallelGateway{gateway_direction: get_value_from_key(e, "gatewayDirection").unwrap()})),
+        connections: Vec::new()};
     node
 }
