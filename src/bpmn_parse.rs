@@ -163,11 +163,15 @@ fn parse_node(e: &BytesStart) -> Result<Node, String> {
         b"semantic:intermediateEvent"=>node=parse_intermediate_event(e),
         b"semantic:exclusiveGateway"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway), connections: Vec::new()};
+                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ExclusiveGateway(
+                    process_bpmn::ExclusiveGateway{gateway_direction: node_attributes[0].clone()})),
+                connections: Vec::new()};
         },
         b"semantic:parallelGateway"=>{let node_attributes = parse_attributes(e);
             node=Node {id: get_id(&node_attributes), name: get_name(&node_attributes),
-                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway), connections: Vec::new()};
+                flow_object: FlowObject::Gateway(process_bpmn::Gateway::ParallelGateway(
+                    process_bpmn::ParallelGateway{gateway_direction: node_attributes[0].clone()})),
+                connections: Vec::new()};
         },
         b"semantic:task"=>node=parse_task(e),
         b"semantic:userTask"=>node=parse_user_task(e),

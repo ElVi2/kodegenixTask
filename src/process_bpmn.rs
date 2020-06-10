@@ -37,13 +37,13 @@ pub struct CallActivity {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ParallelGateway {
-    gateway_direction: String
+    pub gateway_direction: String
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ExclusiveGateway {
-    gateway_direction: String
+    pub gateway_direction: String
 }
 
 #[allow(dead_code)]
