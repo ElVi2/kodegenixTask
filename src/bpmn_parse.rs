@@ -19,17 +19,17 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
-                    b"semantic:definitions" => {let definition_attributes = parse_attributes(e);
-                        def.id=definition_attributes[0].clone();
+                    b"semantic:definitions" => {//let definition_attributes = parse_attributes(e);
+                        def.id=get_value_from_key(e, "id").unwrap();
                     },
-                    b"semantic:process"=>{let process_attributes = parse_attributes(e);
+                    b"semantic:process"=>{//let process_attributes = parse_attributes(e);
                         proc.nodes.push(node);
                         proc.nodes.remove(0);
                         node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
                         def.processes.push(proc);
-                        println!("attributes values: {:?}", &process_attributes);
-                        proc=Process{is_executable: process_attributes[0].parse::<bool>().unwrap(),
-                            id: process_attributes[1].clone(), nodes: Vec::new(), subprocesses: Vec::new()};
+                        //println!("attributes values: {:?}", &process_attributes);
+                        proc=Process{is_executable: get_value_from_key(e, "isExecutable").unwrap().parse::<bool>().unwrap(),
+                            id: get_value_from_key(e, "id").unwrap(), nodes: Vec::new(), subprocesses: Vec::new()};
                     },
                     b"semantic:incoming"=>{
                         text_switch=1;  //set the switch to recognize the incoming connection tag
@@ -44,9 +44,17 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                     },
                     b"semantic:subProcess" => {
                         println!("Found subprocess!");
-                        let subprocess_attributes = parse_attributes(e);
-                        println!("attributes values: {:?}", &subprocess_attributes);
-                        parse_subprocess(&mut reader, &mut proc.subprocesses, &mut buf, subprocess_attributes);
+                        //let subprocess_attributes = parse_attributes(e);
+                        let attr = vec![
+                            get_value_from_key(e, "triggeredByEvent").unwrap(),
+                            get_value_from_key(e, "startQuantity").unwrap(),
+                            get_value_from_key(e, "completionQuantity").unwrap(),
+                            get_value_from_key(e, "isForCompensation").unwrap(),
+                            get_value_from_key(e, "id").unwrap(),
+                            get_value_from_key(e, "name").unwrap(),
+                        ];
+                        //println!("attributes values: {:?}", &subprocess_attributes);
+                        parse_subprocess(&mut reader, &mut proc.subprocesses, &mut buf, attr);
                     },
                     /*
                     b"bpmndi:BPMNDiagram"=>println!("Ok!"),
@@ -97,10 +105,10 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
 }
 
 fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProcess>, buf: &mut Vec<u8>, attr: Vec<String>) {
-    let mut subproc=SubProcess{triggered_by_event: attr[0].clone().parse::<bool>().unwrap(),
-        start_quantity: attr[3].clone().parse::<u64>().unwrap(),
-        completion_quantity: attr[1].clone().parse::<u64>().unwrap(),
-        is_for_compensation: attr[2].clone().parse::<bool>().unwrap(),
+    let mut subproc=SubProcess{triggered_by_event: attr[0].parse::<bool>().unwrap(),
+        start_quantity: attr[1].parse::<u64>().unwrap(),
+        completion_quantity: attr[2].parse::<u64>().unwrap(),
+        is_for_compensation: attr[3].parse::<bool>().unwrap(),
         id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(),
         subprocesses: Vec::new(), connections: Vec::new()};
     let mut node = Node {id: "default".to_string(), name: "default".to_string(),

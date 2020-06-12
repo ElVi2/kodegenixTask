@@ -12,7 +12,7 @@ fn main() {
     //io::stdin()
         //.read_line(&mut file_path)
         //.expect("Failed to read line!");
-    let file_path="data/Call Activity.bpmn";
+    let file_path="data/Collapsed SubProcess.bpmn";
     println!("{}", file_path);
     let mut bpmn_file = File::open(file_path).unwrap();
     let mut contents = String::new();
