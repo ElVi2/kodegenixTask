@@ -5,7 +5,7 @@ use quick_xml::events::{Event, BytesStart};
 use process_bpmn;
 use helper;
 use process_bpmn::{Definitions, SubProcess, Process, Node, FlowObject};
-use helper::{parse_attributes, get_value_from_key};
+use helper::{get_value_from_key};
 
 pub fn parse_process(contents: String)->process_bpmn::Definitions {
     let mut reader = Reader::from_str(&contents);
@@ -19,10 +19,10 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
                 match e.name() {
-                    b"semantic:definitions" => {//let definition_attributes = parse_attributes(e);
+                    b"semantic:definitions" => {
                         def.id=get_value_from_key(e, "id").unwrap();
                     },
-                    b"semantic:process"=>{//let process_attributes = parse_attributes(e);
+                    b"semantic:process"=>{
                         proc.nodes.push(node);
                         proc.nodes.remove(0);
                         node=Node::default();
@@ -44,7 +44,6 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                     },
                     b"semantic:subProcess" => {
                         println!("Found subprocess!");
-                        //let subprocess_attributes = parse_attributes(e);
                         let attr = vec![
                             get_value_from_key(e, "triggeredByEvent").unwrap(),
                             get_value_from_key(e, "startQuantity").unwrap(),
@@ -69,11 +68,9 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                     //_ => println!("{}", String::from_utf8_lossy(e.name())),
                     //_ => println!(),
                     _ => {
-                        let node_attributes = parse_attributes(e);
                         if let Ok(n) = parse_node(e) {
                             proc.nodes.push(node);
                             node = n;
-                            println!("attributes values: {:?}", node_attributes);
                         }
                     },
                 }
@@ -128,11 +125,9 @@ fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProces
                         println!("{ }",text_switch);
                     },
                     _ => {
-                        let node_attributes = parse_attributes(e);
                         if let Ok(n) = parse_node(e) {
                             subproc.nodes.push(node);
                             node = n;
-                            println!("attributes values: {:?}", node_attributes);
                         }
                     },
                 }

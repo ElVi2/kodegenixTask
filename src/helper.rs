@@ -1,6 +1,7 @@
 use quick_xml;
 use quick_xml::events::BytesStart;
 
+#[allow(dead_code)]
 pub fn parse_attributes(e: &BytesStart)->Vec<String> {
     let definition_attributes = e.attributes().map(|a| {
         let attr = a.unwrap();
@@ -10,17 +11,6 @@ pub fn parse_attributes(e: &BytesStart)->Vec<String> {
         .collect::<Vec<_>>();
     definition_attributes
 }
-
-/*
-pub fn get_name(v: &Vec<String>) -> String {
-    let length=v.len();
-    v[length-2].clone()
-}
-
-pub fn get_id(v: &Vec<String>) -> String {
-    let length=v.len();
-    v[length-1].clone()
-}*/
 
 pub fn get_value_from_key(e: &BytesStart, key: &str) ->Result<String, String> {
     let key_u8=key.as_bytes();
