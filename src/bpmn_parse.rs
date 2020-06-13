@@ -11,9 +11,9 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
     let mut buf = Vec::new();
-    let mut def=Definitions{id:" ".to_string(),processes:Vec::new()};
-    let mut proc=Process{is_executable: false, id:"default".to_string(), nodes: Vec::new(), subprocesses: Vec::new()};
-    let mut node = Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut def=Definitions::default();
+    let mut proc=Process::default();
+    let mut node = Node::default();
     let mut text_switch = 0; //this will indicate which tag was the last if there is plain text inside the tag
     loop {
         match reader.read_event(&mut buf) {
@@ -25,7 +25,7 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                     b"semantic:process"=>{//let process_attributes = parse_attributes(e);
                         proc.nodes.push(node);
                         proc.nodes.remove(0);
-                        node=Node {id: "default".to_string(), name: "default".to_string(), flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+                        node=Node::default();
                         def.processes.push(proc);
                         //println!("attributes values: {:?}", &process_attributes);
                         proc=Process{is_executable: get_value_from_key(e, "isExecutable").unwrap().parse::<bool>().unwrap(),
@@ -111,8 +111,7 @@ fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProces
         is_for_compensation: attr[3].parse::<bool>().unwrap(),
         id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(),
         subprocesses: Vec::new(), connections: Vec::new()};
-    let mut node = Node {id: "default".to_string(), name: "default".to_string(),
-        flow_object: FlowObject::Gateway(process_bpmn::Gateway::ComplexGateway), connections: Vec::new()};
+    let mut node = Node::default();
     let mut text_switch = 0;
     //let mut start_switch=false;
     loop {
