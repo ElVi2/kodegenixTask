@@ -226,3 +226,19 @@ impl Default for Connection {
         }
     }
 }
+
+impl Default for ExclusiveGateway {
+    fn default() -> ExclusiveGateway {
+        ExclusiveGateway {
+            gateway_direction: "Diverging".to_string()
+        }
+    }
+}
+
+impl Default for ParallelGateway {
+    fn default() -> ParallelGatewayGateway {
+        ParallelGateway {
+            gateway_direction: "Diverging".to_string()
+        }
+    }
+}
