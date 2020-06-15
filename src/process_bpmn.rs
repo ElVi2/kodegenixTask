@@ -236,7 +236,7 @@ impl Default for ExclusiveGateway {
 }
 
 impl Default for ParallelGateway {
-    fn default() -> ParallelGatewayGateway {
+    fn default() -> ParallelGateway {
         ParallelGateway {
             gateway_direction: "Diverging".to_string()
         }
