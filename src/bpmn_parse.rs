@@ -29,7 +29,7 @@ pub fn parse_process(contents: String)->process_bpmn::Definitions {
                         def.processes.push(proc);
                         //println!("attributes values: {:?}", &process_attributes);
                         proc=Process{is_executable: get_value_from_key(e, "isExecutable").unwrap().parse::<bool>().unwrap(),
-                            id: get_value_from_key(e, "id").unwrap(), nodes: Vec::new(), subprocesses: Vec::new()};
+                            id: get_value_from_key(e, "id").unwrap(), nodes: Vec::new(), subprocesses: Vec::new(), connections: Vec::new()};
                     },
                     b"semantic:incoming"=>{
                         text_switch=1;  //set the switch to recognize the incoming connection tag
@@ -107,7 +107,7 @@ fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProces
         completion_quantity: attr[2].parse::<u64>().unwrap(),
         is_for_compensation: attr[3].parse::<bool>().unwrap(),
         id: attr[4].clone(), name:attr[5].clone(), nodes: Vec::new(),
-        subprocesses: Vec::new(), connections: Vec::new()};
+        subprocesses: Vec::new(), connections: Vec::new(), outer_connections: Vec::new()};
     let mut node = Node::default();
     let mut text_switch = 0;
     //let mut start_switch=false;
@@ -144,7 +144,7 @@ fn parse_subprocess(reader: &mut Reader<&[u8]>, subprocesses: &mut Vec<SubProces
             Ok(Event::End(ref e)) => {
                 if e.name() == b"semantic:subProcess" {
                     subproc.nodes.push(node);
-                    subproc.connections.clone_from(&subproc.nodes[0].connections);
+                    subproc.outer_connections.clone_from(&subproc.nodes[0].connections);
                     subproc.nodes.remove(0);
                     subprocesses.push(subproc);
                     break;

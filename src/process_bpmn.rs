@@ -89,14 +89,19 @@ pub enum ConnectionType {
     Incoming,
     Outgoing
 }
-#[allow(dead_code)]
+
 #[derive(Debug, Clone)]
 pub struct Connection {
     pub id: String,
+    pub connection_type: ConnectionType
+}
+
+#[derive(Debug, Clone)]
+pub struct ConnectionSequence {
+    pub id: String,
     pub name: String,
     pub source_ref: String,
-    pub target_ref: String,
-    pub connection_type: ConnectionType
+    pub target_ref: String
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +117,8 @@ pub struct Process{
     pub is_executable: bool,
     pub id: String,
     pub nodes: Vec<Node>,
-    pub subprocesses: Vec<SubProcess>
+    pub subprocesses: Vec<SubProcess>,
+    pub connections: Vec<ConnectionSequence>
 }
 
 #[derive(Debug, Clone)]
@@ -125,7 +131,8 @@ pub struct SubProcess{
     pub is_for_compensation: bool,
     pub nodes: Vec<Node>,
     pub subprocesses: Vec<SubProcess>,
-    pub connections: Vec<Connection>,
+    pub outer_connections: Vec<Connection>,
+    pub connections: Vec<ConnectionSequence>
 }
 
 #[derive(Debug, Clone)]
@@ -135,25 +142,13 @@ pub struct Definitions {
 }
 
 pub fn add_connection(node: &mut Node, switch: i32, text_var: String) {
-    node.connections.push(Connection{id: text_var.clone(),
-        name: String::new(), connection_type: ConnectionType::Incoming,
-        source_ref: String::new(), target_ref: String::new()});
+    node.connections.push(Connection{id: text_var.clone(), connection_type: ConnectionType::Incoming,
+});
     //let length = node.connections.len();
     if switch==2 {
         node.connections.last_mut().unwrap().connection_type=ConnectionType::Outgoing;
     }
 }
- /*
-fn search_subprocess(id: String, cn: &mut Connection, subproc: &'_ mut SubProcess) {
-
-}
-
-pub fn search_connection(id: &str, proc: &'_ mut Process) -> Result<&'_ mut Connection, String> {
-    for process in space {
-    }
-    Err("Nothing found")
-}
-  */
 
 impl Default for UserTask {
     fn default() -> UserTask {
@@ -190,7 +185,8 @@ impl Default for Process {
             is_executable: false,
             id: String::new(),
             nodes: Vec::new(),
-            subprocesses: Vec::new()
+            subprocesses: Vec::new(),
+            connections: Vec::new()
         }
     }
 }
@@ -219,9 +215,6 @@ impl Default for Connection {
     fn default() -> Connection {
         Connection {
             id: String::new(),
-            name: String::new(),
-            source_ref: String::new(),
-            target_ref: String::new(),
             connection_type: ConnectionType::Incoming
         }
     }
@@ -242,3 +235,50 @@ impl Default for ParallelGateway {
         }
     }
 }
+
+fn get_connection_sequence(id: &str, search_space: &[ConnectionSequence])->Option<(ConnectionSequence, usize)> {
+    for ( pos, sequence) in search_space.iter().enumerate() {
+            if sequence.id==*id {
+            return Some((sequence.clone(), pos))
+        }
+    }
+    None
+}
+
+#[allow(dead_code)]
+impl Process {
+    pub fn find_connection(&self, id: &str) -> Option<ConnectionSequence> {
+        let search_result=get_connection_sequence(id, self.connections.as_slice() );
+        match search_result{
+            Some(_) => return Some(search_result.unwrap().0),
+            None =>return None
+        }
+    }
+
+    pub fn find_connection_position(&self, id: &str) -> Option<usize> {
+        let search_result=get_connection_sequence(id, self.connections.as_slice() );
+        match search_result{
+            Some(_) => return Some(search_result.unwrap().1),
+            None =>return None
+        }
+    }
+}
+
+impl SubProcess {
+    pub fn find_connection(&self, id: &str) -> Option<ConnectionSequence> {
+        let search_result=get_connection_sequence(id, self.connections.as_slice() );
+        match search_result{
+            Some(_) => return Some(search_result.unwrap().0),
+            None =>return None
+        }
+    }
+
+    pub fn find_connection_position(&self, id: &str) -> Option<usize> {
+        let search_result=get_connection_sequence(id, self.connections.as_slice() );
+        match search_result{
+            Some(_) => return Some(search_result.unwrap().1),
+            None =>return None
+        }
+    }
+}
+//pub fn find_connection(id: String, )
